@@ -1,12 +1,12 @@
-
 #ifndef PRODUS_H
 #define PRODUS_H
-
+#include "Ingredient.h"
+#include "StrategiePret.h"
 #include <string>
 #include <memory>
 #include <iostream>
 #include <vector>
-#include "Ingredient.h"
+
 
 class Produs
 {
@@ -16,16 +16,32 @@ protected:
     float pretPreparare;///pret de baza
     int timpPreparare;
 
+    std::shared_ptr<StrategiePret> strategiePret;
+
+    Produs(std::string nume="", float pretPrep=0.0f, int timpPrep=0);
+
+    ///!!!pastrez sau nu
     Produs(const Produs& other) = default;
     Produs& operator=(const Produs& other) = default;
+    ///!!!???
 
     ///metode virtuale interne
     virtual float calculeazaPretFinal() const;
     virtual void afisareDetalii(std::ostream& os) const = 0;///virtuala pura
 
 public:
-    Produs(std::string nume = "", float pretPrep = 0.0f, int timpPrep = 0);
     virtual ~Produs() = default;///destructor virtual
+
+    void setStrategiePret(std::shared_ptr<StrategiePret> nouaStrategie)
+    {
+        if(nouaStrategie)
+            strategiePret=nouaStrategie;
+    }
+
+    std::shared_ptr<StrategiePret> getStrategiePret() const
+    {
+        return strategiePret;
+    }
 
     void afiseaza(std::ostream& os) const;
     float getPretFinal() const
@@ -33,7 +49,10 @@ public:
         return calculeazaPretFinal();
     }
 
-    int getTimpPreparare() const {return timpPreparare;}
+    int getTimpPreparare() const
+    {
+        return timpPreparare;
+    }
 
     ///permite copierea obiectelor fara a sti timpul exact la momentul copierii
     virtual std::shared_ptr<Produs> clone() const = 0;

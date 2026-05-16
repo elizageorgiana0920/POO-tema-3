@@ -25,7 +25,7 @@ static void meniuClient(Gestiune& g)
     int optiune = -1;
     while (optiune != 0)
     {
-        std::cout << "\n--- 1. MENIU CLIENT ---\n"
+        std::cout << "\n--- MENIU CLIENT ---\n"
                   << "1. VEZI MENIU COMPLET\n"
                   << "2. VEZI CE OPTIUNI AVEM DISPONIBILE MOMENTAN\n"
                   << "3. ALEGE UN MENIU PERSONALIZAT\n"
@@ -191,9 +191,12 @@ static void meniuClient(Gestiune& g)
                     comanda.afisareSumarConsola();
                     comanda.finalizeazaComanda(g);
 
-                    g.adaugaComandaInSesiune(std::make_shared<Comanda>(comanda));
+                    auto comandaPtr=std::make_shared<Comanda>(comanda);
+                    g.adaugaComandaInCoada(comandaPtr);
 
-                    int oraVanzare=getOraActuala();
+                    ///dupa ce am consumat ingredientele declansez alerta de stoc
+                    g.genereazaAlerteStoc();
+
                     std::cout << "\n Comanda a fost trimisa catre preparare!\n";
 
 
@@ -221,10 +224,15 @@ static void meniuBarista(Gestiune& g)
     int optiune = -1;
     while (optiune != 0)
     {
-        std::cout << "\n--- 2. MENIU BARISTA ---\n"
-                  << "1. VEZI PRODUSE PE STOC\n"
-                  << "2. VEZI STOCURI CRITICE\n"
-                  << "3. VEZI COMENZI NOI\n"
+        ///declansez iar alerta de stoc
+        g.genereazaAlerteStoc();
+
+        std::cout << "\n--- MENIU BARISTA ---\n";
+        g.afisareAlerteBarista();
+
+        std::cout << "1. VEZI PRODUSELE DIN MENIU CARE SUNT PE STOC\n"
+                  << "2. VIZUALIZEAZA COMENZI ACTIVE IN ASTEPTARE\n"
+                  << "3. PREPARA / FINALIZEAZA CEA MAI VECHE COMANDA\n"
                   << "0. INAPOI\nOptiunea: ";
 
         ///daca a intorodus litere -> eroare
@@ -239,13 +247,13 @@ static void meniuBarista(Gestiune& g)
         switch (optiune)
         {
         case 1:
-           g.afisareMeniu(true);///doar disponibil
-           break;
+            g.afisareMeniu(true); /// doar disponibile
+            break;
         case 2:
-            g.afisareIngredienteCritice();
+            g.afisareComenziActive();
             break;
         case 3:
-            g.afisareComenziSesiune();
+            g.finalizeazaCeaMaiVecheComanda();
             break;
         default:
             std::cout << "Optiune invalida!\n";
@@ -259,7 +267,8 @@ static void meniuManager(Gestiune& g)
     int optiune = -1;
     while (optiune != 0)
     {
-        std::cout << "\n--- 3. MENIU MANAGER ---\n"
+        g.genereazaAlerteStoc();
+        std::cout << "\n--- MENIU MANAGER ---\n"
                   << "1. VEZI MENIU COMPLET\n"
                   << "2. VEZI STOC INGREDIENTE\n"
                   << "3. REAPROVIZIONEAZA\n"
@@ -267,9 +276,11 @@ static void meniuManager(Gestiune& g)
                   << "5. PRODUSE CU STOC CRITIC (PATISERIE/SANDWICH)\n"
                   << "6. RAPOARTE BUSINESS\n"
                   << "7. VEZI TOATE COMENZILE (ISTORIC)\n"
+                  << "8. MODIFICA POLITICA DE PRETURI \n"
+                  << "9. VERIFICA ALERTE STOC SI STRATEGII DE PRET ACTIVE IN DEPOZIT\n"
                   << "0. INAPOI\nOptiunea: ";
 
-        ///daca a intorodus litere -> eroare
+        ///daca a intorodus litere => eroare
         if (!(std::cin >> optiune))
         {
             std::cin.clear();///resetez starea de eroare
@@ -314,6 +325,26 @@ static void meniuManager(Gestiune& g)
             while (std::getline(f, linie)) std::cout << linie << "\n";
             break;
         }
+        case 8:
+        {
+            int tipStr;
+            std::cout<<"\n--- ALEGE POLITICA DE PRETURI PREFERATA ---\n"
+                     << "1. Preturi Standard\n"
+                     << "2. Activare Happy Hour (-20% la toate produsele)\n"
+                     << "3. Activare Tarif de Weekend (+10% la toate produsele)\n"
+                     << "Alegerea ta: ";
+            std::cin>>tipStr;
+            g.aplicaStrategieGlobala(tipStr);
+            break;
+        }
+        case 9:
+            {
+                std::cout<<"Alerte active: ";
+                afiseazaDimensiuneDepozit(g.getAlerteStoc());
+                std::cout<<"Strategii de pret disponibile: ";
+                afiseazaDimensiuneDepozit(g.getStrategiiDisponibile());
+                break;
+            }
         default:
             std::cout << "Optiune invalida!\n";
         }
@@ -322,7 +353,7 @@ static void meniuManager(Gestiune& g)
 
 int main()
 {
-    Gestiune cafea;
+    Gestiune& cafea=Gestiune::getInstanta();
 
     try
     {

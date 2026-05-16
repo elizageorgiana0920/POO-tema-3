@@ -1,13 +1,14 @@
-
 #include "Gestiune.h"
 #include "Bautura.h"
 #include "Patiserie.h"
 #include "Sandwich.h"
 #include "Exceptii.h"
+#include "ProdusFactory.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <algorithm>
+
 
 ///initiez membru static in afara clasei
 float Gestiune::profitTotal = 0.0f;
@@ -23,6 +24,10 @@ Gestiune::Gestiune()
     {
         profitTotal = 0;
     }
+
+    strategiiDisponibile.adauga(std::make_shared<StrategieStandard>());
+    strategiiDisponibile.adauga(std::make_shared<StrategieHappyHour>());
+    strategiiDisponibile.adauga(std::make_shared<StrategieWeekend>());
 }
 
 ///destructor
@@ -120,7 +125,7 @@ void Gestiune::incarcaMeniuPatiserie(const std::string& fisier)
     float kcal;
     while (fin >> nume >> pret >> timp >> expira >> stoc >> v >> z >> l >> kcal)
     {
-        meniu.push_back(std::make_shared<Patiserie>(nume, pret, timp, expira, stoc, v!=0, z!=0, l!=0, kcal));
+        meniu.push_back(ProdusFactory::creeazaProdus("patiserie", nume, pret, timp, expira, stoc, v!=0, z!=0, l!=0, kcal));
     }
 }
 ///incarc datele de la sandwich si pe pun intr un meniu special cu pointeri la clasa Sandwich pentru a pastra corect specificatiile
@@ -134,7 +139,7 @@ void Gestiune::incarcaMeniuSandwich(const std::string& fisier)
     float kcal;
     while (fin >> nume >> pret >> timp >> expira >> stoc >> v >> z >> l >> kcal >> incalz)
     {
-        meniu.push_back(std::make_shared<Sandwich>(nume, pret, timp, expira, stoc, v!=0, z!=0, l!=0, kcal, incalz!=0));
+        meniu.push_back(ProdusFactory::creeazaProdus("sandwich", nume, pret, timp, expira, stoc, v!=0, z!=0, l!=0, kcal, incalz!=0));
     }
 }
 
@@ -154,7 +159,8 @@ void Gestiune::incarcaMeniuBauturi(const std::string& fisier)
 
         if (ss >> nume >> pretBaza >> timp >> calda)
         {
-            auto b = std::make_shared<Bautura>(nume, pretBaza, timp, calda != 0);
+            auto produsGeneric=ProdusFactory::creeazaProdus("bautura", nume, pretBaza, timp, 0, 0, false, false, false, 0.0f, calda != 0);
+            auto b=std::dynamic_pointer_cast<Bautura>(produsGeneric);
             while (ss >> numeIng)
             {
                 Ingredient* ref = gasesteIngredient(numeIng);
@@ -421,11 +427,13 @@ void Gestiune::incarcaStatistici(const std::string& fisier)
     fin.close();
 }
 
-void Gestiune::salveazaVanzareInIstoric(int ora, const std::string& numeProdus) {
+void Gestiune::salveazaVanzareInIstoric(int ora, const std::string& numeProdus)
+{
 
     std::ofstream fout("statistici.txt", std::ios::app);
 
-    if (fout.is_open()) {
+    if (fout.is_open())
+    {
         fout << ora << " " << numeProdus << "\n";
         fout.close();
     }
@@ -462,18 +470,134 @@ void Gestiune::afiseazaRaportBusiness() const
     }
 }
 
-void Gestiune::adaugaComandaInSesiune(std::shared_ptr<Comanda> c) {
+void Gestiune::adaugaComandaInSesiune(std::shared_ptr<Comanda> c)
+{
     comenziSesiuneCurenta.push_back(c);
 }
 
-void Gestiune::afisareComenziSesiune() const {
+void Gestiune::afisareComenziSesiune() const
+{
     std::cout << "\n--- COMENZI NOI (SESIUNEA CURENTA) ---\n";
-    if (comenziSesiuneCurenta.empty()) {
+    if (comenziSesiuneCurenta.empty())
+    {
         std::cout << "Nu sunt comenzi noi de preparat.\n";
         return;
     }
-    for (const auto& com : comenziSesiuneCurenta) {
+    for (const auto& com : comenziSesiuneCurenta)
+    {
         com->afisareSumarConsola();
         std::cout << "--------------------------------------\n";
     }
+}
+
+///ce am adaugat pentru meniul barista
+void Gestiune::adaugaComandaInCoada(std::shared_ptr<Comanda> c)
+{
+    coadaComenzi.push_back(c);
+    comenziSesiuneCurenta.push_back(c); ///pastrez si istoricul sesiunii
+}
+
+void Gestiune::afisareComenziActive() const
+{
+    std::cout << "\n=== COMENZILE CARE SE AFLA IN ASTEPTARE ===\n";
+    if (coadaComenzi.empty())
+    {
+        std::cout << "Nu exista comenzi active in acest moment.\n";
+        return;
+    }
+    for (size_t i = 0; i < coadaComenzi.size(); ++i)
+    {
+        std::cout<<i+1<<". Comanda [Cod: "<<coadaComenzi[i]->getCodRidicare()<<"]\n";
+        coadaComenzi[i]->afisareSumarConsola();
+        std::cout<< "------------------------------------------\n";
+    }
+}
+
+void Gestiune::finalizeazaCeaMaiVecheComanda()
+{
+    if (coadaComenzi.empty())
+    {
+        std::cout<<"[!] Nu exista comenzi de preparat.\n";
+        return;
+    }
+
+    auto comandaDePreparat = coadaComenzi.front();
+
+    ///scad timpul total in care barista este ocupata, daca s-a finalizat o comanda
+    ///calculez timpul total al produselor din comanda curenta
+    int timpRedus = 0;
+    for (const auto& p : comandaDePreparat->getProduseComandate())
+    {
+        timpRedus+=p->getTimpPreparare();
+    }
+
+    Comanda::scadeTimpOcupat(timpRedus);
+
+    std::cout<<"[OK] Barista a preparat cu succes Comanda cu codul: "<<comandaDePreparat->getCodRidicare()<< "\n";
+
+    ///elimin comanda si din coada de astepare (cu comenzile active)
+    coadaComenzi.erase(coadaComenzi.begin());
+}
+
+void Gestiune::genereazaAlerteStoc()
+{
+    ///resetez daca exista alerte vechi
+    alerteStoc.stergeToate();
+    for (const auto& ing : listaIngrediente)
+    {
+        if (ing.atentieStocMic())
+        {
+            alerteStoc.adauga(" INGREDIENT STOC CRITIC: Ingredientul '"+ing.getNume()+"' mai are doar "+std::to_string(ing.getStoc())+" unitati!");
+        }
+    }
+    for (const auto& p : meniu)
+    {
+        ///verificam daca produsul curent face parte din patiserie
+        auto pat=std::dynamic_pointer_cast<Patiserie>(p);
+        if (pat&&pat->getStoc()<3)
+        {
+            alerteStoc.adauga("STOC EPUIZAT (PATISERIE): '"+pat->getNume()+"' nu mai este disponibil pe stoc!");
+        }
+
+        ///verificam daca produsul curent face parte din sandwich
+        auto sand=std::dynamic_pointer_cast<Sandwich>(p);
+        if (sand&&sand->getStoc() <3)
+        {
+            alerteStoc.adauga("STOC EPUIZAT (SANDWICH): '"+sand->getNume()+"' nu mai este disponibil pe stoc!");
+        }
+    }
+}
+
+void Gestiune::afisareAlerteBarista() const
+{
+    std::cout<<"\n=== ALERTA DE STOC ===\n";
+    if (alerteStoc.esteGol())
+    {
+        std::cout<<"Toate ingredientele sunt in parametrii optimi.\n";
+        return;
+    }
+    for (const auto& alerta : alerteStoc.getElemente())
+    {
+        std::cout<<" [!] "<<alerta<<"\n";
+    }
+
+    afiseazaDimensiuneDepozit(alerteStoc);
+}
+
+void Gestiune::aplicaStrategieGlobala(int tipStrategie)
+{
+
+    std::shared_ptr<StrategiePret> nouaStrategie;
+
+    if (tipStrategie==1) nouaStrategie=std::make_shared<StrategieStandard>();
+    else if (tipStrategie==2) nouaStrategie=std::make_shared<StrategieHappyHour>();
+    else if (tipStrategie==3) nouaStrategie=std::make_shared<StrategieWeekend>();
+
+    if (!nouaStrategie) return;
+
+    for (auto& p : meniu)
+    {
+        p->setStrategiePret(nouaStrategie);
+    }
+    std::cout<<"[MANAGER] Toate preturile au fost trecute la regimul: "<<nouaStrategie->getDenumire()<<"\n";
 }

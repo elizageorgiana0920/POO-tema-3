@@ -46,10 +46,11 @@ void Bautura::adaugaToppingExtra(Ingredient* top)
 
 float Bautura::calculeazaPretFinal() const
 {
-    float total = pretPreparare;
-    for (const auto* ing : listaIngrediente) total += ing->getPret();
-    for (const auto* top : toppinguriExtra)  total += top->getPret(); /// Plus topping
-    return total;
+    float bazaIngrediente=pretPreparare;
+    for (const auto* ing : listaIngrediente) bazaIngrediente += ing->getPret();
+    for (const auto* top : toppinguriExtra)  bazaIngrediente += top->getPret(); /// Plus topping
+
+    return strategiePret->calculeazaPret(bazaIngrediente, 0.0f);
 }
 
 ///functie de verificare a stocului ingredientelor pentru o reteta

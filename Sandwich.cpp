@@ -25,12 +25,11 @@ void Sandwich::cereIncalzit()
 ///Adaos 50% + 2 RON taxa de incalzire (daca este cazul)
 float Sandwich::calculeazaPretFinal() const
 {
-    float pret = pretPreparare * 1.5f;
-    if (vreaIncalzit)
-    {
-        pret += 2.0f;
+    float pretCuAdaos=strategiePret->calculeazaPret(pretPreparare, 1.5f);
+    if (vreaIncalzit) {
+        pretCuAdaos+=2.0f; // Taxa fixă de încălzire adăugată la final
     }
-    return pret;
+    return pretCuAdaos;
 }
 
 bool Sandwich::esteExpirat() const

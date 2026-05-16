@@ -16,7 +16,7 @@ Patiserie::Patiserie(std::string nume, float pretPrep, int timpPrep, std::time_t
 /// Adaos de 40% (Pret de baza * 1.4)
 float Patiserie::calculeazaPretFinal() const
 {
-    return pretPreparare * 1.4f;
+    return strategiePret->calculeazaPret(pretPreparare, 1.4f);
 }
 
 ///daca a trecut data exp de data curenta

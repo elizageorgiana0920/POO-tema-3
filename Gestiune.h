@@ -9,17 +9,23 @@
 #include "Ingredient.h"
 #include "Produs.h"
 #include "Comanda.h"
+#include "Depozit.h"
 
 class Gestiune
 {
 private:
+     Gestiune();
+    ~Gestiune();
+    Gestiune(const Gestiune&)=delete;
+    Gestiune& operator=(const Gestiune&)=delete;
+
     ///pointeri obiecte fizice
     std::vector<Ingredient> listaIngrediente;
     std::vector<Ingredient> listaToppinguri;
     ///clasa de baza, pemite amestecarea bauturi, sandwich
     std::vector<std::shared_ptr<Produs>> meniu;
-
     std::vector<std::string> istoricComenzi;
+
     std::vector<std::shared_ptr<Comanda>> coadaComenzi;
     std::vector<std::shared_ptr<Comanda>> comenziSesiuneCurenta;
 
@@ -30,10 +36,24 @@ private:
     std::map<std::string, int> frecventaIngrediente;///nume
     std::map<int, int> frecventaOre;
 
+    Depozit<std::string> alerteStoc;
+    Depozit<std::shared_ptr<StrategiePret>> strategiiDisponibile;
+
 
 public:
-    Gestiune();
-    ~Gestiune();
+
+    ///acces unicat la instanta
+    static Gestiune& getInstanta(){
+    static Gestiune instanta;
+    return instanta;
+    }
+
+    ///metode pe care le-am adaugat pentru barista
+    void adaugaComandaInCoada(std::shared_ptr<Comanda> c);
+    void afisareComenziActive() const;
+    void finalizeazaCeaMaiVecheComanda();
+    void genereazaAlerteStoc();
+    void afisareAlerteBarista() const;
 
     /// Incarcare date din fisiere
     void incarcaIngrediente(const std::string& fisier);
@@ -64,6 +84,8 @@ public:
     void afisareProduseCriticePatiserieSandwich() const;
     void afiseazaRaportBusiness() const;
 
+    void aplicaStrategieGlobala(int tipStrategie);
+
     /// pentru cautare
     Produs* gasesteProdusDupaNume(const std::string& nume) const;
     Ingredient* gasesteIngredient(const std::string& nume);
@@ -75,6 +97,10 @@ public:
     {
         return profitTotal;
     }
+
+    ///pentru folosirea depozitului de alerte
+    const Depozit<std::string>& getAlerteStoc() const {return alerteStoc;}
+    const Depozit<std::shared_ptr<StrategiePret>>& getStrategiiDisponibile() const{return strategiiDisponibile;}
 
     void afisareComenziSesiune() const;
     void adaugaComandaInSesiune(std::shared_ptr<Comanda> c);

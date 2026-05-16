@@ -3,7 +3,7 @@
 
 /// Constructorul clasei de baza
 Produs::Produs(std::string nume, float pretPrep, int timpPrep)
-    : nume(std::move(nume)), pretPreparare(pretPrep), timpPreparare(timpPrep) {}
+    : nume(std::move(nume)), pretPreparare(pretPrep), timpPreparare(timpPrep), strategiePret(std::make_shared<StrategieStandard>()) {}
 
 ///copy and swap
 void swap(Produs& a, Produs& b)
@@ -27,7 +27,7 @@ void Produs::afiseaza(std::ostream& os) const
 /// Implementare de baza pentru pretul final.
 float Produs::calculeazaPretFinal() const
 {
-    return pretPreparare;
+    return strategiePret->calculeazaPret(pretPreparare);
 }
 
 /// Operatorul << afisare pentru polimorfism
