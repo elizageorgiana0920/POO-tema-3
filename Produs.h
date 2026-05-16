@@ -20,10 +20,8 @@ protected:
 
     Produs(std::string nume="", float pretPrep=0.0f, int timpPrep=0);
 
-    ///!!!pastrez sau nu
     Produs(const Produs& other) = default;
-    Produs& operator=(const Produs& other) = default;
-    ///!!!???
+    Produs& operator=(const Produs& other) = default
 
     ///metode virtuale interne
     virtual float calculeazaPretFinal() const;
