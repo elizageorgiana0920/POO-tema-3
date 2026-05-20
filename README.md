@@ -1,4 +1,4 @@
-# Gestiunea unei cafenele
+# Gestiunea unei cafenele - Review
 ## Eliza's Coffee Shop
 
 Pentru Tema 3, am implementat o aplicație software care se ocupă cu gestionarea completă a unei cafenele. Aplicația are la bază trei meniuri interactive separate, structurate astfel încât să asigure o utilizare facilă pentru cele trei categorii de utilizatori: Clientul, Barista și Managerul. Fiecare dintre aceștia deține roluri complet diferite și esențiale în funcționarea corectă și eficientă a cafenelei.
