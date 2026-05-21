@@ -60,19 +60,19 @@ Am proiectat `Depozit<T>` ca o clasa template cu operații de bază: adăugare, 
 
 ## Aplicarea Principiilor SOLID
 
-### 1. S — Single Responsibility Principle (Principiul Responsabilității Unice)
+### 1. S — Single Responsibility Principle
 Fiecare clasă din cadrul proiectului are o singură responsabilitate clar definită și izolată. De exemplu, clasa `Ingredient` se ocupă strict de starea, stocul și proprietățile nutriționale ale unei ingredient, fără a cunoaște modul în care acestea sunt combinate sau încasate. În mod similar, clasa `Autentificare` este responsabilă exclusiv de securitatea aplicației și de verificarea parolelor, fiind complet separată de logica de business sau de preparare a produselor.
 
-### 2. O — Open/Closed Principle (Principiul Deschis/Închis)
+### 2. O — Open/Closed Principle
 Sistemul poate fi extins cu ușurință, se pot face adăugări la cod. Acest lucru a fost realizat cu ajutorul design pattern-urilor *Strategy* și *Factory*. Dacă pe viitor cafeneaua dorește să introducă o nouă politică de reduceri (de exemplu, o promoție specială de sărbători), nu este necesară modificarea claselor `Produs` sau `Gestiune`. Este suficient să se creeze o nouă clasă derivată din interfața `StrategiePret`, iar sistemul o va integra dinamic, fără a risca stricarea funcționalităților deja introduse.
 
-### 3. L — Liskov Substitution Principle (Principiul Substituției lui Liskov)
+### 3. L — Liskov Substitution Principle 
 Clasele derivate (`Bautura`, `Sandwich`, `Patiserie`) pot înlocui în orice moment clasa de bază `Produs` în cadrul colecțiilor polimorfice, fără a afecta stabilitatea programului. Atât meniul din clasa `Gestiune`, cât și lista de cumpărături din clasa `Comanda` utilizează containere de pointeri inteligenți `std::vector<std::shared_ptr<Produs>>`. În timpul parcurgerii acestor liste, apelarea metodelor virtuale precum `p->getPretFinal()` sau `p->esteDisponibil()` garantează un comportament corect, indiferent de tipul real al obiectului aflat în spate.
 
-### 4. I — Interface Segregation Principle (Principiul Segregării Interfeței)
-Clasele derivate nu sunt forțate să depindă de funcționalități pe care nu le utilizează. Interfața clasei de bază `Produs` impune obținerea unei liste de ingrediente, aspect critic pentru rețeta unei `Bauturi`. Cu toate acestea, produsele finite de tip `Patiserie` sau `Sandwich` sunt gestionate la bucată și nu au nevoie de o listă dinamică de componente. Pentru a nu încărca inutil memoria, am implementat o metodă prin care ambele clase returnează o referință către o listă vidă statică comună (`listaVida`).
+### 4. I — Interface Segregation Principle 
+Clasele derivate nu sunt forțate să depindă de funcționalități pe care nu le utilizează. Interfața clasei de bază `Produs` impune obținerea unei liste de ingrediente, aspect critic pentru rețeta unei `Bauturi`. Cu toate acestea, produsele finite de tip `Patiserie` sau `Sandwich` sunt gestionate la bucată și nu au nevoie de o listă dinamică de componente, astfel am implementat o metodă prin care ambele clase returnează o referință către o listă vidă statică comună (`listaVida`).
 
-### 5. D — Dependency Inversion Principle (Principiul Inversării Dependenței)
+### 5. D — Dependency Inversion Principle 
 CLasele complexe nu depind de cele mai mici, clasa de bază `Produs` are nevoie să interacționeze cu un algoritm de calcul al prețului, însă ea nu depinde de clasele specifice precum `StrategieHappyHour` sau `StrategieWeekend`. În schimb, `Produs` deține doar un pointer către strategie `std::shared_ptr<StrategiePret>`. Dependența este inversată, deoarece produsele nu mai sunt legate de formulele de calcul, prețurile pot fi schimbate pe parcurs, prin metoda setStrategiePret.
 
 ## ️ Structura Detaliată a Metodelor Utilizate
