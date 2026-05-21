@@ -14,6 +14,7 @@
 class Gestiune
 {
 private:
+///am implementat formatul singleton aici
      Gestiune();
     ~Gestiune();
     Gestiune(const Gestiune&)=delete;
@@ -42,7 +43,7 @@ private:
 
 public:
 
-    ///acces unicat la instanta
+    ///asta este poarta de acces la obiect, pe care o apelez in main 
     static Gestiune& getInstanta(){
     static Gestiune instanta;
     return instanta;
