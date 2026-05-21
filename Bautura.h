@@ -8,7 +8,7 @@
 #include <memory>
 
 
-///Bautura is a Produs
+///Bautura este un Produs
 class Bautura : public Produs
 {
 private:
@@ -43,12 +43,12 @@ public:
 
     const std::vector<Ingredient*>& getIngrediente() const override
     {
-        return listaIngrediente; /// returneaza pointerul catre vectorul tau real
+        return listaIngrediente;
         ///fiecare ingredient din listaIngredient are referinta spre clasa Ingredient
     }
 
 protected:
-    ///interva non virtuala
+    ///interfata non virtuala
     float calculeazaPretFinal() const override;
     void afisareDetalii(std::ostream& os) const override;
 };
