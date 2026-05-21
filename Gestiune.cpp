@@ -580,6 +580,14 @@ void Gestiune::afisareAlerteBarista() const
     {
         std::cout<<" [!] "<<alerta<<"\n";
     }
+    ///in vazul in care sunt foarte multe produse lipsa de pe stoc, folosesc o alerta suplimentara
+    if (alerteStoc.getElemente().size() >= 10)
+    {
+        std::cout<<"\n****************************************************\n";
+        std::cout<<"[URGENT] SITUATIA STOCULUI CAFENELEI ESTE CRITICA!\n";
+        std::cout<<"         REAPROVIZIONARE URGENTA!\n";
+        std::cout<<"****************************************************\n\n";
+    }
 
     afiseazaDimensiuneDepozit(alerteStoc);
 }
